@@ -1,6 +1,6 @@
 {
   "name": "tree-sitter-teal",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Tree sitter parser for Teal, a typed dialect of Lua.",
   "main": "bindings/node",
   "scripts": {
@@ -11,7 +11,7 @@
     "teal",
     "lua"
   ],
-  "author": "euclidianAce",
+  "author": ["euclidianAce", "alannotnerd"],
   "license": "MIT",
   "dependencies": {
     "nan": "^2.14.2"
