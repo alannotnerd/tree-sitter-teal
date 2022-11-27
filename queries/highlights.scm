@@ -68,17 +68,13 @@
   name: (identifier) @type)
 (anon_record . "record" @keyword)
 (record_body
-  (record_declaration
-    . [ "record" ] @keyword
-    . name: (identifier) @type))
+  (record_entry
+    . [ "record" "enum" ] @keyword
+    . key: (identifier) @type))
 (record_body
-  (enum_declaration
-    . [ "enum" ] @keyword
-    . name: (identifier) @type))
-(record_body
-  (typedef
+  (record_entry
     . "type" @keyword
-    . name: (identifier) @type . "="))
+    . key: (identifier) @type . "="))
 (record_body
   (metamethod "metamethod" @keyword))
 (record_body
@@ -89,7 +85,7 @@
   name: (identifier) @type)
 
 (type_declaration "type" @keyword)
-(type_declaration (identifier) @type)
+(type_declaration (type_name) @type)
 (simple_type) @type
 (type_index) @type
 (type_union "|" @operator)
@@ -97,14 +93,12 @@
 
 ;; The rest of it
 (var_declaration
-  declarators: (var_declarators
-      (var name: (identifier) @variable)))
+  (var name: (identifier) @variable))
 (var_declaration
-  declarators: (var_declarators
-    (var
-      "<" @punctuation.bracket
-      . attribute: (attribute) @attribute
-      . ">" @punctuation.bracket)))
+  (var
+    "<" @punctuation.bracket
+    . attribute: (attribute) @attribute
+    . ">" @punctuation.bracket))
 [ "(" ")" "[" "]" "{" "}" ] @punctuation.bracket
 
 ;; Only highlight format specifiers in calls to string.format

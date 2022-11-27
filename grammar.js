@@ -74,7 +74,7 @@ module.exports = grammar({
       $.enum_declaration,
       $.return_statement,
       $.break,
-      $._for_statement,
+      $.for_statement,
       $.do_statement,
       $.while_statement,
       $.repeat_statement,
@@ -106,19 +106,13 @@ module.exports = grammar({
     elseif_block: $ => seq("elseif", field("condition", $._expression), "then", repeat($._statement)),
     else_block: $ => seq("else", repeat($._statement)),
 
-    numeric_for_statement: $ => seq(
-      "for", field("variable", $.identifier), "=", field("initializer", $._expression),
-      ",", field("target", $._expression),
-      optional(seq(",", field("step", $._expression))), field("body", alias($.do_statement, $.for_body))
-    ),
-
-    generic_for_statement: $ => seq(
-        "for", field("variable", list($.identifier)), "in", field("iterator", list($._expression)), field("body", alias($.do_statement, $.for_body))
-    ),
-
-    _for_statement: $ => choice(
-        $.numeric_for_statement,
-        $.generic_for_statement,
+    for_statement: $ => choice(
+      seq(
+        "for", $.identifier, "=", $._expression, ",", $._expression, optional(seq(",", $._expression)), alias($.do_statement, $.for_body)
+      ),
+      seq(
+        "for", list($.identifier), "in", list($._expression), alias($.do_statement, $.for_body)
+      )
     ),
 
     while_statement: $ => seq(
@@ -155,7 +149,7 @@ module.exports = grammar({
 
     unary_op: $ => prec.left(prec_op.unary, seq(
       field("op", alias(choice('not', '#', '-', '~'), $.op)),
-      field("right", $._expression)
+      $._expression
     )),
 
     bin_op: $ => choice(
@@ -180,22 +174,22 @@ module.exports = grammar({
         ['//', prec_op.mult],
         ['%', prec_op.mult],
       ].map(([operator, precedence]) => prec.left(precedence, seq(
-        field("left", $._expression),
+        $._expression,
         field("op", alias(operator, $.op)),
-        field("right", $._expression)
+        $._expression
       ))),
       ...[
         ['..', prec_op.concat],
         ['^', prec_op.power],
       ].map(([operator, precedence]) => prec.right(precedence, seq(
-        field("left", $._expression),
+        $._expression,
         field("op", alias(operator, $.op)),
-        field("right", $._expression)
+        $._expression
       ))),
       prec.right(prec_op.is, seq(
-        field("left", $._expression),
+        $._expression,
         field("op", alias("is", $.op)),
-        field("right", $._type)
+        $._type
       )),
     ),
 
@@ -213,39 +207,29 @@ module.exports = grammar({
       optional(seq("<", field("attribute", alias($.identifier, $.attribute)), ">")),
     ),
 
-    var_declarators: $ => list(alias($.var_declarator, $.var)),
-
-    expressions: $ => list($._expression),
-
     var_declaration: $ => seq(
       $.scope,
-      field("declarators", $.var_declarators),
+      list(alias($.var_declarator, $.var)),
       optional(field("type_annotation", $.type_annotation)),
-      optional(seq("=", field("initializers", $.expressions)))
-    ),
-
-    _type_def: $ => seq(
-        "type",
-        field("name", $.identifier),
-        "=",
-        field("value", choice(
-          $._type, $._newtype
-        ))
+      optional(seq("=", list($._expression)))
     ),
 
     type_declaration: $ => choice(
       seq(
-        field("scope", $.scope),
-        $._type_def,
+        $.scope,
+        "type",
+        alias($.identifier, $.type_name),
+        "=",
+        choice(
+          $._type, $._newtype
+        )
       ),
       $.record_declaration,
       $.enum_declaration,
     ),
 
-    assignment_variables: $ => list(alias($._var, $.var)),
-
     var_assignment: $ => seq(
-      field("variables", $.assignment_variables), "=", field("expressions", $.expressions)
+      list(alias($._var, $.var)), "=", list($._expression)
     ),
 
     _prefix_expression: $ => prec(10, choice(
@@ -362,7 +346,7 @@ module.exports = grammar({
       "end"
     ),
 
-    record_field: $ => choice(
+    record_entry: $ => choice(
       seq(
         field("key", $.identifier),
         ":", field("type", $._type)
@@ -376,13 +360,19 @@ module.exports = grammar({
         field("key", alias(reserved_id, $.identifier)),
         ":", field("type", $._type)
       )),
-    ),
-
-    _record_entry: $ => choice(
-        alias($.record_field, $.field),
-        alias($._type_def, $.typedef),
-        alias($._record_def, $.record_declaration),
-        alias($._enum_def, $.enum_declaration),
+      seq(
+        "type", field("key", $.identifier), "=", field("value", choice($._type, $._newtype))
+      ),
+      seq(
+        "record",
+        field("key", $.identifier),
+        field("typeargs", optional($.typeargs)),
+        field("value", $.record_body),
+      ),
+      seq(
+        "enum", field("key", $.identifier),
+        field("value", $.enum_body),
+      ),
     ),
 
     metamethod_annotation: $ => seq(
@@ -392,9 +382,9 @@ module.exports = grammar({
     record_body: $ => seq(
       optional(seq("{", alias($._type, $.record_array_type), "}")),
       repeat(choice(
-        $._record_entry,
+        $.record_entry,
         alias("userdata", $.userdata),
-        field("metamethod", alias($.metamethod_annotation, $.metamethod)),
+        alias($.metamethod_annotation, $.metamethod),
       )),
       "end"
     ),
@@ -402,8 +392,8 @@ module.exports = grammar({
     _record_def: $ => seq(
       "record",
       field("name", $.identifier),
-      field("typeargs", optional($.typeargs)),
-      field("record_body", $.record_body)
+      optional($.typeargs),
+      $.record_body
     ),
 
     record_declaration: $ => seq(
@@ -419,7 +409,7 @@ module.exports = grammar({
     _enum_def: $ => seq(
       "enum",
       field("name", $.identifier),
-      field("enum_body", $.enum_body)
+      $.enum_body
     ),
 
     enum_declaration: $ => seq(
@@ -431,7 +421,7 @@ module.exports = grammar({
     anon_record: $ => seq(
       "record",
       optional($.typeargs),
-      field("record_body", $.record_body)
+      $.record_body
     ),
 
     _anon_enum: $ => seq(
@@ -468,7 +458,7 @@ module.exports = grammar({
     )),
 
     simple_type: $ => prec.right(1000, seq(
-      field("name", $.identifier),
+      alias($.identifier, "name"),
       optional(alias($.typearg_params, $.typeargs))
     )),
 
@@ -537,30 +527,26 @@ module.exports = grammar({
     ),
     boolean: $ => choice("true", "false"),
 
-    _short_string_content: $ => alias(repeat1(choice(
+    string: $ => prec(2, choice(
+      seq(
+        $._short_string_start,
+        repeat(choice(
           $.format_specifier,
           $.escape_sequence,
           token.immediate(prec(1, '%')),
           prec(0, $._short_string_char),
-        )), $.string_content),
-
-    _long_string_content: $ => alias(repeat1(choice(
-          $.format_specifier,
-          $._long_string_char,
-          token.immediate(prec(1, '%')),
-        )), $.string_content),
-
-    string: $ => prec(2, choice(
-      seq(
-        field("start", alias($._short_string_start, "short_string_start")),
-        field("content", optional($._short_string_content)),
-        field("end", alias($._short_string_end, "short_string_end")),
+        )),
+        $._short_string_end,
       ),
 
       seq(
-        field("start", alias($._long_string_start, "long_string_start")),
-        field("content", optional($._long_string_content)),
-        field("end", alias($._long_string_end, "long_string_end")),
+        $._long_string_start,
+        repeat(choice(
+          $.format_specifier,
+          $._long_string_char,
+          token.immediate(prec(1, '%')),
+        )),
+        $._long_string_end,
       ),
     )),
 

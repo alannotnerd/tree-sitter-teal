@@ -1,7 +1,6 @@
 [
 (do_statement)
-(numeric_for_statement)
-(generic_for_statement)
+(for_statement)
 (while_statement)
 (repeat_statement)
 (if_statement)

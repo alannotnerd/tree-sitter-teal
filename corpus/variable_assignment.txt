@@ -1,120 +1,73 @@
-================================================================================
+==============================
 Local Variable Declaration
-================================================================================
+==============================
 
 local x = 5
 
---------------------------------------------------------------------------------
+---
 
 (program
-  (var_declaration
-    declarators: (var_declarators
-      (var
-        name: (identifier)))
-    initializers: (expressions
-      (number))))
+  (var_declaration (var name: (identifier)) (number)))
 
-================================================================================
+==============================
 Global Variable Declaration
-================================================================================
+==============================
 
 global x = 5
 
---------------------------------------------------------------------------------
+---
 
 (program
-  (var_declaration
-    declarators: (var_declarators
-      (var
-        name: (identifier)))
-    initializers: (expressions
-      (number))))
+  (var_declaration (var name: (identifier)) (number)))
 
-================================================================================
+
+==============================
 Local Variable List Declaration
-================================================================================
+==============================
 
 local x, y, z = 1, 2, 3
 
---------------------------------------------------------------------------------
+---
 
 (program
   (var_declaration
-    declarators: (var_declarators
-      (var
-        name: (identifier))
-      (var
-        name: (identifier))
-      (var
-        name: (identifier)))
-    initializers: (expressions
-      (number)
-      (number)
-      (number))))
+    (var name: (identifier)) (var name: (identifier)) (var name: (identifier))
+    (number) (number) (number)))
 
-================================================================================
+==============================
 Global Variable List Declaration
-================================================================================
+==============================
 
 global x, y, z = 1, 2, "hey"
 
---------------------------------------------------------------------------------
+---
 
 (program
   (var_declaration
-    declarators: (var_declarators
-      (var
-        name: (identifier))
-      (var
-        name: (identifier))
-      (var
-        name: (identifier)))
-    initializers: (expressions
-      (number)
-      (number)
-      (string
-        content: (string_content)))))
+    (var name: (identifier)) (var name: (identifier)) (var name: (identifier))
+    (number) (number) (string)))
 
-================================================================================
+
+==============================
 Variable reassignment
-================================================================================
+==============================
 
 local x = "hey"
 x = "hi"
 
---------------------------------------------------------------------------------
+---
 
 (program
-  (var_declaration
-    declarators: (var_declarators
-      (var
-        name: (identifier)))
-    initializers: (expressions
-      (string
-        content: (string_content))))
-  (var_assignment
-    variables: (assignment_variables
-      (var
-        (identifier)))
-    expressions: (expressions
-      (string
-        content: (string_content)))))
+  (var_declaration (var name: (identifier)) (string))
+  (var_assignment (var (identifier)) (string)))
 
-================================================================================
+==============================
 Table entry reassignment
-================================================================================
+==============================
 
 foo.bar = "hi"
 
---------------------------------------------------------------------------------
+---
 
 (program
-  (var_assignment
-    (assignment_variables
-      (var
-        (index
-          (identifier)
-          (identifier))))
-    (expressions
-      (string
-        (string_content)))))
+  (var_assignment (var (index (identifier) (identifier))) (string)))
